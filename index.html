@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Inventario de Condominios | Vacasa</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <header>
+        <div class="logo-container">
+            <img src="img/vacasa.jpg" alt="Vacasa Logo" class="logo">
+        </div>
+        <h1>Sistema de Inventario de Condominios</h1>
+    </header>
+
+    <main>
+        <div class="container">
+            <div class="periodo-selector">
+                <label for="periodo">Seleccionar Inventario:</label>
+                <select id="periodo">
+                    <option value="">-- Crear Nuevo Inventario --</option>
+                </select>
+                <div class="nuevo-periodo">
+                    <input type="text" id="nuevo-periodo-nombre" placeholder="Nombre del nuevo inventario">
+                    <button id="crear-periodo" class="btn">Crear</button>
+                </div>
+            </div>
+
+            <div class="inventario-form">
+                <h2>Gestión del Inventario</h2>
+                
+                <div class="secciones-container">
+                    <div class="seccion-header">
+                        <h3>Secciones</h3>
+                        <div class="nueva-seccion">
+                            <input type="text" id="nueva-seccion-nombre" placeholder="Nombre de la sección">
+                            <button id="crear-seccion" class="btn btn-secondary"><i class="fas fa-plus"></i> Crear Sección</button>
+                        </div>
+                    </div>
+                    <div class="seccion-select">
+                        <label for="seccion">Seleccionar Sección:</label>
+                        <select id="seccion">
+                            <option value="">-- Seleccionar Sección --</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="articulo-form-container">
+                    <h3>Agregar Artículo</h3>
+                    <div class="input-group">
+                        <label for="nombre">Nombre del Artículo:</label>
+                        <input type="text" id="nombre" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="cantidad">Cantidad:</label>
+                        <input type="number" id="cantidad" min="1" value="1" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="estado">Estado del Artículo:</label>
+                        <select id="estado" required>
+                            <option value="Nuevo">Nuevo</option>
+                            <option value="Bueno">Bueno</option>
+                            <option value="Regular">Regular</option>
+                            <option value="Defectuoso">Defectuoso</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="descripcion">Descripción:</label>
+                        <textarea id="descripcion" rows="3"></textarea>
+                    </div>
+                    <div class="input-group">
+                        <label for="imagen">Imagen (opcional):</label>
+                        <div class="file-input-container">
+                            <input type="file" id="imagen" accept="image/*">
+                            <label for="imagen" class="file-label"><i class="fas fa-camera"></i> Seleccionar Imagen</label>
+                        </div>
+                        <div id="imagen-preview" class="imagen-preview"></div>
+                    </div>
+                    <button id="agregar-articulo" class="btn btn-add"><i class="fas fa-plus"></i> Agregar Artículo</button>
+                </div>
+            </div>
+
+            <div class="inventario-container">
+                <h2 id="inventario-titulo">Inventario</h2>
+                
+                <div class="filtro-secciones">
+                    <label for="filtro-seccion">Filtrar por sección:</label>
+                    <select id="filtro-seccion">
+                        <option value="todas">Todas las secciones</option>
+                    </select>
+                </div>
+                
+                <div id="inventario-items" class="inventario-items">
+                    <!-- Aquí se mostrarán las tarjetas de artículos -->
+                </div>
+                
+                <div class="acciones">
+                    <button id="generar-pdf" class="btn btn-primary"><i class="fas fa-file-pdf"></i> Generar PDF</button>
+                    <button id="eliminar-inventario" class="btn btn-danger" style="display: none;">
+                        <i class="fas fa-trash"></i> Eliminar Inventario Actual
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+
+    <footer>
+        <p>Sistema de Inventario de Condominios &copy; 2025</p>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
