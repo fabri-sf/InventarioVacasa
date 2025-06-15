@@ -592,14 +592,20 @@ function generarPDF() {
             const pdf = new jsPDF('p', 'mm', 'a4');
             const pageWidth = pdf.internal.pageSize.getWidth();
             const pageHeight = pdf.internal.pageSize.getHeight();
-            const margin = 10; // Margen de 10mm en cada lado
+            const margin = 10;
             const contentWidth = pageWidth - (margin * 2);
 
-            // Función para añadir encabezado común a cada página
+            // ===== CREAR PORTADA =====
+            await crearPortada(pdf, pageWidth, pageHeight, margin);
+
+            // Añadir nueva página para el contenido del inventario
+            pdf.addPage();
+
+            // Función para añadir encabezado común a cada página de contenido
             const addHeader = () => {
                 pdf.setFont('helvetica', 'bold');
                 pdf.setFontSize(16);
-                pdf.setTextColor(0, 58, 77); // Color #003a4d
+                pdf.setTextColor(0, 58, 77);
                 pdf.text(`Inventario: ${inventarioActual.nombre}`, pageWidth / 2, margin + 5, { align: 'center' });
                 pdf.setFont('helvetica', 'normal');
                 pdf.setFontSize(10);
@@ -608,10 +614,10 @@ function generarPDF() {
                 pdf.text(`Total de artículos: ${articulos.length}`, pageWidth - margin, margin + 15, { align: 'right' });
 
                 // Línea separadora
-                pdf.setDrawColor(0, 58, 77); // Color #003a4d
+                pdf.setDrawColor(0, 58, 77);
                 pdf.line(margin, margin + 18, pageWidth - margin, margin + 18);
 
-                return margin + 25; // Devuelve la posición Y después del encabezado
+                return margin + 25;
             };
 
             // Agrupar artículos por sección
@@ -624,7 +630,7 @@ function generarPDF() {
                 articulosPorSeccion[seccionId].push(articulo);
             });
 
-            // Comenzar con la primera página y agregar encabezado
+            // Comenzar con la primera página de contenido y agregar encabezado
             let yPos = addHeader();
             let isFirstPage = true;
 
@@ -642,36 +648,30 @@ function generarPDF() {
                 // Título de la sección
                 pdf.setFont('helvetica', 'bold');
                 pdf.setFontSize(14);
-                pdf.setTextColor(0, 58, 77); // Color #003a4d
+                pdf.setTextColor(0, 58, 77);
                 pdf.text(seccion ? seccion.nombre : 'Sin sección', margin, yPos);
 
                 // Línea debajo del título de la sección
-                pdf.setDrawColor(0, 58, 77); // Color #003a4d
+                pdf.setDrawColor(0, 58, 77);
                 pdf.line(margin, yPos + 2, pageWidth - margin, yPos + 2);
 
                 yPos += 10;
 
                 // Configuración de la tabla
                 const headers = ['Nombre', 'Cantidad', 'Estado', 'Descripción'];
-                const columnWidths = [60, 25, 30, 65]; // Ancho en mm para cada columna
+                const columnWidths = [60, 25, 30, 65];
                 const rowHeight = 10;
 
                 // Encabezados de la tabla
-                // Encabezados de la tabla - Modificado para mejor visibilidad
-                pdf.setFillColor(0, 58, 77); // Color #003a4d
-                pdf.setTextColor(255, 255, 255); // Texto en blanco
-                // Encabezados de la tabla - Versión mejorada
                 pdf.setFont('helvetica', 'bold');
                 pdf.setFontSize(10);
 
                 let xPos = margin;
                 for (let i = 0; i < headers.length; i++) {
-                    // Fondo del encabezado
-                    pdf.setFillColor(0, 58, 77); // Azul oscuro
+                    pdf.setFillColor(0, 58, 77);
                     pdf.rect(xPos, yPos, columnWidths[i], rowHeight, 'F');
 
-                    // Texto del encabezado
-                    pdf.setTextColor(255, 255, 255); // Blanco
+                    pdf.setTextColor(255, 255, 255);
                     pdf.text(
                         headers[i],
                         xPos + (columnWidths[i] / 2),
@@ -682,32 +682,26 @@ function generarPDF() {
                         }
                     );
 
-
                     pdf.rect(xPos, yPos, columnWidths[i], rowHeight);
-
                     xPos += columnWidths[i];
                 }
 
-                // Restaurar colores para el contenido
-                pdf.setFillColor(249, 249, 249); // Gris claro para filas
-                pdf.setTextColor(0, 0, 0); // Negro para texto
-
+                pdf.setFillColor(249, 249, 249);
+                pdf.setTextColor(0, 0, 0);
                 yPos += rowHeight;
 
                 // Contenido de la tabla
                 pdf.setFont('helvetica', 'normal');
                 pdf.setTextColor(0, 0, 0);
-                pdf.setFillColor(249, 249, 249); // Color #f9f9f9 para filas alternas
+                pdf.setFillColor(249, 249, 249);
 
                 for (let i = 0; i < articulosSeccion.length; i++) {
                     const articulo = articulosSeccion[i];
 
-                    // Comprobar si hay espacio para la siguiente fila, si no, añadir nueva página
                     if (yPos > pageHeight - 20) {
                         pdf.addPage();
                         yPos = addHeader();
 
-                        // Volver a añadir los encabezados de la tabla
                         pdf.setFillColor(0, 58, 77);
                         pdf.setTextColor(255, 255, 255);
                         pdf.setFont('helvetica', 'bold');
@@ -727,42 +721,38 @@ function generarPDF() {
                         pdf.setTextColor(0, 0, 0);
                     }
 
-                    // Determinar si la fila es alterna para el color de fondo
                     if (i % 2 === 0) {
-                        pdf.setFillColor(249, 249, 249); // Color #f9f9f9
+                        pdf.setFillColor(249, 249, 249);
                         xPos = margin;
                         for (let j = 0; j < headers.length; j++) {
                             pdf.rect(xPos, yPos, columnWidths[j], rowHeight, 'F');
                             xPos += columnWidths[j];
                         }
                     } else {
-                        pdf.setFillColor(255, 255, 255); // Color blanco
+                        pdf.setFillColor(255, 255, 255);
                     }
 
-                    // Calcular el color del estado
                     let colorEstado;
                     switch (articulo.estado) {
                         case 'Nuevo':
-                            colorEstado = [40, 167, 69]; // Verde #28a745
+                            colorEstado = [40, 167, 69];
                             break;
                         case 'Bueno':
-                            colorEstado = [23, 162, 184]; // Azul #17a2b8
+                            colorEstado = [23, 162, 184];
                             break;
                         case 'Regular':
-                            colorEstado = [255, 193, 7]; // Amarillo #ffc107
+                            colorEstado = [255, 193, 7];
                             break;
                         case 'Defectuoso':
                         case 'Malo':
-                            colorEstado = [220, 53, 69]; // Rojo #dc3545
+                            colorEstado = [220, 53, 69];
                             break;
                         default:
-                            colorEstado = [108, 117, 125]; // Gris #6c757d
+                            colorEstado = [108, 117, 125];
                     }
 
-                    // Añadir datos de la fila
                     xPos = margin;
 
-                    // Nombre
                     pdf.setFont('helvetica', 'normal');
                     pdf.setTextColor(0, 0, 0);
                     pdf.text(articulo.nombre.substring(0, 25), xPos + 2, yPos + (rowHeight / 2), {
@@ -770,26 +760,22 @@ function generarPDF() {
                     });
                     xPos += columnWidths[0];
 
-                    // Cantidad
                     pdf.text(articulo.cantidad.toString(), xPos + (columnWidths[1] / 2), yPos + (rowHeight / 2), {
                         align: 'center',
                         baseline: 'middle'
                     });
                     xPos += columnWidths[1];
 
-                    // Estado (con color)
                     const estadoX = xPos + (columnWidths[2] / 2);
                     const estadoY = yPos + (rowHeight / 2);
 
-                    // Rectángulo de color para el estado
                     pdf.setFillColor(...colorEstado);
                     pdf.roundedRect(estadoX - 10, estadoY - 3, 20, 6, 1, 1, 'F');
 
-                    // Texto del estado
                     if (articulo.estado === 'Regular') {
-                        pdf.setTextColor(51, 51, 51); // Color #333 para texto oscuro
+                        pdf.setTextColor(51, 51, 51);
                     } else {
-                        pdf.setTextColor(255, 255, 255); // Color blanco para otros estados
+                        pdf.setTextColor(255, 255, 255);
                     }
                     pdf.setFontSize(8);
                     pdf.text(articulo.estado, estadoX, estadoY, {
@@ -798,7 +784,6 @@ function generarPDF() {
                     });
                     xPos += columnWidths[2];
 
-                    // Descripción
                     pdf.setTextColor(0, 0, 0);
                     pdf.setFontSize(10);
                     const descripcion = articulo.descripcion || '-';
@@ -809,7 +794,6 @@ function generarPDF() {
                     yPos += rowHeight;
                 }
 
-                // Espacio después de la tabla
                 yPos += 10;
                 isFirstPage = false;
             }
@@ -818,121 +802,95 @@ function generarPDF() {
             const articulosConImagen = articulos.filter(articulo => articulo.imagen);
 
             if (articulosConImagen.length > 0) {
-                // Comprobar si hay espacio para la sección de imágenes, si no, añadir nueva página
                 if (yPos > pageHeight - 50) {
                     pdf.addPage();
                     yPos = addHeader();
                 }
 
-                // Título para la sección de imágenes
                 pdf.setFont('helvetica', 'bold');
                 pdf.setFontSize(14);
-                pdf.setTextColor(0, 58, 77); // Color #003a4d
+                pdf.setTextColor(0, 58, 77);
                 pdf.text('Imágenes del Inventario', margin, yPos);
 
-                // Línea debajo del título
                 pdf.setDrawColor(0, 58, 77);
                 pdf.line(margin, yPos + 2, pageWidth - margin, yPos + 2);
 
                 yPos += 10;
 
-                // Mostrar imágenes en cuadrícula (2 por fila)
-                // En la función generarPDF(), busca la sección donde se procesan las imágenes y reemplázala con esto:
-
-                // Mostrar imágenes en cuadrícula (2 por fila)
-                const imageWidth = (contentWidth - 10) / 2; // 10mm de espacio entre imágenes
-                const imageHeight = 100; // Aumentamos la altura fija para cada imagen (antes era 40)
+                const imageWidth = (contentWidth - 10) / 2;
+                const imageHeight = 100;
 
                 let currentX = margin;
 
-                // Crear un canvas fuera del DOM para convertir las imágenes
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
 
-                // Procesar cada imagen
                 for (let i = 0; i < articulosConImagen.length; i++) {
                     const articulo = articulosConImagen[i];
                     const seccion = seccionesMap[articulo.seccionId];
 
-                    // Si estamos al inicio de una nueva fila y no hay espacio suficiente, añadir nueva página
-                    if (currentX === margin && yPos + imageHeight + 30 > pageHeight) { // Aumentamos el espacio requerido
+                    if (currentX === margin && yPos + imageHeight + 30 > pageHeight) {
                         pdf.addPage();
                         yPos = addHeader();
                     }
 
-                    // Dibujar borde del contenedor
-                    pdf.setDrawColor(221, 221, 221); // Color #ddd
-                    pdf.setFillColor(249, 249, 249); // Color #f9f9f9
-                    pdf.roundedRect(currentX, yPos, imageWidth, imageHeight + 20, 1, 1, 'FD'); // Aumentamos la altura total del contenedor
+                    pdf.setDrawColor(221, 221, 221);
+                    pdf.setFillColor(249, 249, 249);
+                    pdf.roundedRect(currentX, yPos, imageWidth, imageHeight + 20, 1, 1, 'FD');
 
-                    // Título del artículo
                     pdf.setFont('helvetica', 'bold');
                     pdf.setFontSize(10);
                     pdf.setTextColor(0, 0, 0);
                     pdf.text(articulo.nombre.substring(0, 25), currentX + 5, yPos + 5);
 
-                    // Sección del artículo
                     pdf.setFont('helvetica', 'normal');
                     pdf.setFontSize(8);
-                    pdf.setTextColor(85, 85, 85); // Color #555
+                    pdf.setTextColor(85, 85, 85);
                     pdf.text(`Sección: ${seccion ? seccion.nombre : 'Sin sección'}`, currentX + 5, yPos + 10);
 
-                    // Convertir la imagen a formato compatible con jsPDF
                     const img = document.createElement('img');
                     img.src = articulo.imagen;
 
-                    // Usar una promesa para esperar a que la imagen cargue
                     const processImage = new Promise((resolve) => {
                         img.onload = function () {
-                            // Calcular proporciones para mantener el aspect ratio
                             const aspectRatio = img.width / img.height;
-                            let drawWidth = imageWidth - 10; // 5mm de padding a cada lado
+                            let drawWidth = imageWidth - 10;
                             let drawHeight = drawWidth / aspectRatio;
 
-                            // Si la altura es mayor que el espacio disponible, ajustar
-                            if (drawHeight > imageHeight - 10) { // Dejamos 10mm para texto y padding
-                                drawHeight = imageHeight - 15; // 15mm para texto y padding
+                            if (drawHeight > imageHeight - 10) {
+                                drawHeight = imageHeight - 15;
                                 drawWidth = drawHeight * aspectRatio;
                             }
 
-                            // Centrar la imagen horizontalmente en su contenedor
                             const imageX = currentX + ((imageWidth - drawWidth) / 2);
 
-                            // Dibujar la imagen en el canvas
                             canvas.width = img.width;
                             canvas.height = img.height;
                             ctx.drawImage(img, 0, 0, img.width, img.height);
 
-                            // Convertir a formato base64
                             const imgData = canvas.toDataURL('image/jpeg');
-
-                            // Añadir la imagen al PDF - posición Y ajustada para dejar espacio para el texto
-                            pdf.addImage(imgData, 'JPEG', imageX, yPos + 20, drawWidth, drawHeight); // Aumentamos la posición Y inicial
+                            pdf.addImage(imgData, 'JPEG', imageX, yPos + 20, drawWidth, drawHeight);
 
                             resolve();
                         };
 
-                        // Si la imagen no se puede cargar
                         img.onerror = function () {
-                            pdf.setTextColor(220, 53, 69); // Color rojo para el error
+                            pdf.setTextColor(220, 53, 69);
                             pdf.text('Error al cargar la imagen', currentX + 5, yPos + 25);
                             resolve();
                         };
                     });
 
-                    // Esperar a que se procese la imagen actual
                     await processImage;
 
-                    // Actualizar posición X para la siguiente imagen
                     if (currentX === margin) {
-                        currentX = margin + imageWidth + 10; // Pasar a la segunda columna
+                        currentX = margin + imageWidth + 10;
                     } else {
-                        currentX = margin; // Volver a la primera columna
-                        yPos += imageHeight + 30; // Avanzar a la siguiente fila (aumentamos el espacio entre filas)
+                        currentX = margin;
+                        yPos += imageHeight + 30;
                     }
                 }
 
-                // Si terminamos en la segunda columna, avanzar a la siguiente fila
                 if (currentX !== margin) {
                     yPos += imageHeight + 30;
                 }
@@ -957,6 +915,83 @@ function generarPDF() {
         console.error('Error al obtener las secciones:', error);
         alert('Error al obtener las secciones para el PDF');
     };
+}
+
+// Función para crear la portada del PDF
+async function crearPortada(pdf, pageWidth, pageHeight, margin) {
+    // Fondo degradado (simulado con rectángulos)
+    pdf.setFillColor(0, 58, 77); // Color principal de Vacasa
+    pdf.rect(0, 0, pageWidth, pageHeight / 3, 'F');
+    
+    pdf.setFillColor(240, 248, 255); // Color azul muy claro
+    pdf.rect(0, pageHeight / 3, pageWidth, pageHeight * 2/3, 'F');
+
+    // Obtener el logo de Vacasa del HTML
+    const logoImg = document.querySelector('.logo');
+    
+    if (logoImg && logoImg.complete) {
+        // Crear canvas para procesar el logo
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Configurar el canvas con las dimensiones de la imagen
+        canvas.width = logoImg.naturalWidth;
+        canvas.height = logoImg.naturalHeight;
+        
+        // Dibujar la imagen en el canvas
+        ctx.drawImage(logoImg, 0, 0);
+        
+        // Convertir a base64
+        const logoData = canvas.toDataURL('image/jpeg');
+        
+        // Calcular dimensiones del logo en el PDF (máximo 40mm de ancho)
+        const maxLogoWidth = 40;
+        const logoAspectRatio = logoImg.naturalWidth / logoImg.naturalHeight;
+        const logoWidth = maxLogoWidth;
+        const logoHeight = logoWidth / logoAspectRatio;
+        
+        // Centrar el logo horizontalmente
+        const logoX = (pageWidth - logoWidth) / 2;
+        const logoY = 30;
+        
+        // Añadir el logo al PDF
+        pdf.addImage(logoData, 'JPEG', logoX, logoY, logoWidth, logoHeight);
+    }
+
+    // Título principal
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(28);
+    pdf.setTextColor(255, 255, 255); // Blanco
+    pdf.text('INVENTARIO', pageWidth / 2, 90, { align: 'center' });
+
+    // Nombre del inventario
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(24);
+    pdf.setTextColor(0, 58, 77); // Color principal
+    pdf.text(inventarioActual.nombre.toUpperCase(), pageWidth / 2, 140, { align: 'center' });
+
+    // Línea decorativa
+    pdf.setDrawColor(0, 58, 77);
+    pdf.setLineWidth(2);
+    pdf.line(margin + 20, 150, pageWidth - margin - 20, 150);
+
+    // Información adicional
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(12);
+    pdf.setTextColor(85, 85, 85); // Gris oscuro
+    
+
+    // Información del sistema
+    pdf.setFont('helvetica', 'italic');
+    pdf.setFontSize(10);
+    pdf.setTextColor(128, 128, 128); // Gris claro
+    pdf.text('Sistema de Inventario de Condominios', pageWidth / 2, pageHeight - 30, { align: 'center' });
+    pdf.text('© 2025 Vacasa', pageWidth / 2, pageHeight - 20, { align: 'center' });
+
+    // Decoración adicional - Rectángulo con bordes redondeados
+    pdf.setDrawColor(0, 58, 77);
+    pdf.setFillColor(255, 255, 255);
+    pdf.roundedRect(margin + 10, 120, pageWidth - (margin * 2) - 20, 80, 5, 5, 'D');
 }
 
 // Función para manejar la subida de imágenes

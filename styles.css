@@ -92,6 +92,7 @@ header {
     border-radius: 4px;
 }
 
+
 /* Formulario de inventario */
 .inventario-form {
     background: white;
@@ -537,3 +538,4 @@ footer {
         margin-bottom: 10px;
     }
 }
+
